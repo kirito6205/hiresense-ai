@@ -1,11 +1,25 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
 build/
 dist/
 wheels/
 *.egg-info
+
+# System files
 .DS_Store
+
+# Data (very important)
 data/
+
 # Virtual environments
 .venv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Env variables
+.env
+
+# Logs
+*.log
