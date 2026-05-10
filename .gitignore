@@ -1,12 +1,10 @@
-# Python-generated files
+.venv/
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-*.pyc
+.env
 uploads/
-# Virtual environments
-.venv
-
+resumes/
+job_descriptions/
+graphify-out/
+*.pyc
+.DS_Store
+.vscode/
