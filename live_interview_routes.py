@@ -1,23 +1,3 @@
-# ============================================================
-# live_interview_routes.py
-# Add this file to your project root, then register it in app.py
-# ============================================================
-#
-# INSTALL DEPENDENCIES FIRST:
-#   pip install flask-socketio opencv-python mediapipe \
-#               openai-whisper numpy scipy soundfile eventlet
-#
-# IN YOUR app.py, add these lines near the top:
-#   from flask_socketio import SocketIO, emit
-#   from live_interview_routes import register_live_routes
-#   socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
-#   register_live_routes(socketio, db)
-#
-# CHANGE your app runner at the bottom of app.py to:
-#   if __name__ == "__main__":
-#       socketio.run(app, host="127.0.0.1", port=5000, debug=True)
-# ============================================================
-
 import os
 import uuid
 import base64
