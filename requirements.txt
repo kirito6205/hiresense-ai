@@ -8,3 +8,6 @@ transformers
 torch
 librosa
 soundfile
+flask-socketio
+eventlet
+openai-whisper

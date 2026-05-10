@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HireSense AI — Live Interview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --surface:  #111520;
+    --card:     #161c2a;
+    --border:   #1f2a40;
+    --accent:   #00e5ff;
+    --accent2:  #7c3aed;
+    --success:  #00e096;
+    --warn:     #ffb800;
+    --danger:   #ff4560;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --font:     'Syne', sans-serif;
+    --mono:     'DM Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid layout ─────────────────────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    gap: 0;
+  }
+
+  /* ── Top bar ─────────────────────────────────────────────── */
+  .topbar {
+    grid-column: 1/-1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .q-progress {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .q-dots { display: flex; gap: 6px; }
+  .q-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .q-dot.done    { background: var(--success); }
+  .q-dot.active  { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* ── Main video area ─────────────────────────────────────── */
+  .main-area {
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+  #webcam {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .webcam-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Corner brackets */
+  .bracket {
+    position: absolute;
+    width: 44px; height: 44px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: 0.7;
+  }
+  .bracket.tl { top:16px; left:16px;  border-width:2px 0 0 2px; }
+  .bracket.tr { top:16px; right:16px; border-width:2px 2px 0 0; }
+  .bracket.bl { bottom:16px; left:16px;  border-width:0 0 2px 2px; }
+  .bracket.br { bottom:16px; right:16px; border-width:0 2px 2px 0; }
+
+  /* Recording pulse ring */
+  .rec-ring {
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,70,96,0.18);
+    border: 1px solid var(--danger);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--danger);
+  }
+  .rec-ring.active { display: flex; }
+  .rec-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── Question overlay (bottom of video) ──────────────────── */
+  .question-banner {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.92) 60%, transparent);
+    padding: 32px 28px 20px;
+    pointer-events: none;
+  }
+  .q-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #question-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #fff;
+    min-height: 56px;
+    transition: opacity 0.4s;
+  }
+
+  /* ── Controls bar ────────────────────────────────────────── */
+  .controls {
+    grid-column: 1;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-start {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-start:hover { filter: brightness(1.15); }
+  .btn-stop {
+    background: var(--danger);
+    color: #fff;
+    display: none;
+  }
+  .btn-stop:hover { filter: brightness(1.2); }
+  .btn-next {
+    background: var(--accent2);
+    color: #fff;
+    display: none;
+  }
+  .btn-next:hover { filter: brightness(1.2); }
+  .status-msg {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+  .status-dot.live { background: var(--success); animation: pulse 1.5s infinite; }
+
+  /* ── Right sidebar ───────────────────────────────────────── */
+  .sidebar {
+    grid-row: 2/4;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .panel {
+    border-bottom: 1px solid var(--border);
+    padding: 18px;
+  }
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Live face metrics */
+  .face-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .face-metric {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .face-metric-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .face-metric-val {
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    transition: color 0.4s;
+  }
+  .face-metric-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .emotion-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(0,229,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.25);
+    transition: all 0.4s;
+    margin-top: 4px;
+  }
+
+  /* Ring gauge */
+  .ring-wrap {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 10px;
+  }
+  .ring-svg { flex-shrink: 0; }
+  .ring-info { flex: 1; }
+  .ring-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .ring-val   { font-size: 1.8rem; font-weight: 700; font-family: var(--mono); color: var(--text); }
+  .ring-sub   { font-size: 0.72rem; color: var(--muted); }
+
+  .ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+  .ring-fill  {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 5;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 22px 22px;
+    transition: stroke-dashoffset 0.6s ease, stroke 0.4s;
+  }
+
+  /* Transcript live */
+  #live-transcript {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 72px;
+    max-height: 140px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  #live-transcript::-webkit-scrollbar { width: 3px; }
+  #live-transcript::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* Answer history */
+  .answer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .answer-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .answer-q-label {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .answer-score {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+  .score-high  { background: rgba(0,224,150,0.15); color: var(--success); }
+  .score-mid   { background: rgba(255,184,0,0.15); color: var(--warn); }
+  .score-low   { background: rgba(255,70,96,0.15);  color: var(--danger); }
+  .answer-emo  { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  .answer-fb   {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Setup overlay */
+  #setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,12,16,0.97);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s;
+  }
+  .setup-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 420px;
+    text-align: center;
+  }
+  .setup-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .setup-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 28px; }
+  .setup-field { margin-bottom: 16px; text-align: left; }
+  .setup-field label {
+    display: block;
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .setup-field select,
+  .setup-field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .setup-field select:focus,
+  .setup-field input:focus { border-color: var(--accent); }
+  .btn-begin {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: var(--font);
+    transition: filter 0.2s;
+  }
+  .btn-begin:hover { filter: brightness(1.1); }
+
+  /* Summary overlay */
+  #summary-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,12,16,0.97);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 100;
+    overflow-y: auto;
+    padding: 40px 20px;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 680px;
+  }
+  .summary-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+  .summary-level {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+    background: rgba(0,229,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.25);
+  }
+  .summary-scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .sum-score-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .sum-score-val {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: var(--mono);
+    color: var(--accent);
+  }
+  .sum-score-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .summary-answers-title {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .sum-answer-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .sum-answer-item h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  .sum-answer-item p  { font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin-bottom: 6px; }
+  .sum-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-done {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent2);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-family: var(--font);
+    transition: filter 0.2s;
+  }
+  .btn-done:hover { filter: brightness(1.15); }
+</style>
+</head>
+<body>
+
+<!-- ── Setup Overlay ─────────────────────────────────────────────── -->
+<div id="setup-overlay">
+  <div class="setup-card">
+    <div class="setup-title">HireSense AI</div>
+    <div class="setup-sub">Live Interview Analysis — configure your session</div>
+
+    <div class="setup-field">
+      <label>Your Name</label>
+      <input type="text" id="cfg-name" placeholder="Full name" value=""/>
+    </div>
+    <div class="setup-field">
+      <label>Target Role</label>
+      <select id="cfg-role">
+        <option>Software Engineer</option>
+        <option>Data Scientist</option>
+        <option>Product Manager</option>
+        <option>Machine Learning Engineer</option>
+        <option>Frontend Developer</option>
+        <option>Backend Developer</option>
+        <option>DevOps Engineer</option>
+        <option>Business Analyst</option>
+        <option>UX Designer</option>
+        <option>Marketing Manager</option>
+      </select>
+    </div>
+    <div class="setup-field">
+      <label>Number of Questions</label>
+      <select id="cfg-qs">
+        <option value="3">3 Questions</option>
+        <option value="5" selected>5 Questions</option>
+        <option value="7">7 Questions</option>
+      </select>
+    </div>
+
+    <button class="btn-begin" onclick="beginSession()">Start Live Interview →</button>
+  </div>
+</div>
+
+<!-- ── Summary Overlay ───────────────────────────────────────────── -->
+<div id="summary-overlay">
+  <div class="summary-card">
+    <div class="summary-title">Interview Complete</div>
+    <div id="sum-level" class="summary-level">—</div>
+    <div class="summary-scores">
+      <div class="sum-score-box">
+        <div class="sum-score-val" id="sum-final">—</div>
+        <div class="sum-score-label">Overall</div>
+      </div>
+      <div class="sum-score-box">
+        <div class="sum-score-val" id="sum-speech">—</div>
+        <div class="sum-score-label">Speech</div>
+      </div>
+      <div class="sum-score-box">
+        <div class="sum-score-val" id="sum-face">—</div>
+        <div class="sum-score-label">Confidence</div>
+      </div>
+      <div class="sum-score-box">
+        <div class="sum-score-val" id="sum-nlp">—</div>
+        <div class="sum-score-label">Relevance</div>
+      </div>
+    </div>
+    <div class="summary-answers-title">Per-Question Breakdown</div>
+    <div id="sum-answers"></div>
+    <button class="btn-done" onclick="window.location.href='/dashboard'">
+      View Full Dashboard →
+    </button>
+  </div>
+</div>
+
+<!-- ── Main Layout ───────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="logo">HireSense AI</span>
+    <span style="color:var(--muted);font-size:0.82rem;font-family:var(--mono);">LIVE SESSION</span>
+    <div class="topbar-right">
+      <div class="q-progress">
+        <span id="q-counter" style="color:var(--text);">Q0/0</span>
+        <div class="q-dots" id="q-dots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video area -->
+  <div class="main-area">
+    <video id="webcam" autoplay muted playsinline></video>
+
+    <div class="webcam-overlay">
+      <div class="bracket tl"></div>
+      <div class="bracket tr"></div>
+      <div class="bracket bl"></div>
+      <div class="bracket br"></div>
+    </div>
+
+    <div class="rec-ring" id="rec-ring">
+      <div class="rec-dot"></div>
+      REC
+    </div>
+
+    <div class="question-banner">
+      <div class="q-label" id="q-label">Waiting…</div>
+      <div id="question-text">Your question will appear here once the session starts.</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-start" id="btn-start" onclick="startRecording()">
+      ● Start Answer
+    </button>
+    <button class="btn btn-stop" id="btn-stop" onclick="stopRecording()">
+      ■ Done Answering
+    </button>
+    <button class="btn btn-next" id="btn-next" onclick="requestNextQuestion()">
+      Next Question →
+    </button>
+    <div class="status-msg">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Camera starting…</span>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="sidebar">
+
+    <!-- Live face metrics -->
+    <div class="panel">
+      <div class="panel-title">Live Analysis</div>
+      <div class="face-grid">
+        <div class="face-metric" style="grid-column:1/-1;">
+          <div class="face-metric-label">Emotion</div>
+          <div class="emotion-badge" id="live-emotion">Waiting…</div>
+        </div>
+        <div class="face-metric">
+          <div class="face-metric-label">Confidence</div>
+          <div class="face-metric-val" id="live-conf">—</div>
+          <div class="face-metric-sub">face score</div>
+        </div>
+        <div class="face-metric">
+          <div class="face-metric-label">Eye Contact</div>
+          <div class="face-metric-val" id="live-eye">—</div>
+          <div class="face-metric-sub">alignment</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live answer score ring -->
+    <div class="panel">
+      <div class="panel-title">Answer Score</div>
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="44" height="44" viewBox="0 0 44 44">
+          <circle class="ring-track" cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" id="ring-fill" cx="22" cy="22" r="18"
+                  stroke-dasharray="113" stroke-dashoffset="113"/>
+        </svg>
+        <div class="ring-info">
+          <div class="ring-label">Current Q</div>
+          <div class="ring-val" id="ring-val">—</div>
+          <div class="ring-sub" id="ring-sub">answer score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live transcript -->
+    <div class="panel">
+      <div class="panel-title">Live Transcript</div>
+      <div id="live-transcript">
+        Your speech will appear here while you answer…
+      </div>
+    </div>
+
+    <!-- Answer history -->
+    <div class="panel" style="flex:1;">
+      <div class="panel-title">Answer History</div>
+      <div id="answer-history"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────
+const socket = io();
+let sessionId    = null;
+let mediaRecorder = null;
+let videoStream   = null;
+let frameInterval = null;
+let audioChunks   = [];
+let totalQ        = 0;
+let currentQ      = 0;
+let sessionActive = false;
+let recordingNow  = false;
+let waitingForNext = false;
+
+// ── Webcam boot ────────────────────────────────────────────────────────
+async function initCamera() {
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 1280, height: 720, facingMode: "user" },
+      audio: true
+    });
+    document.getElementById("webcam").srcObject = videoStream;
+    setStatus("Camera ready — configure session", false);
+  } catch (e) {
+    setStatus("Camera access denied — please allow camera", false);
+    console.error(e);
+  }
+}
+
+function setStatus(msg, live) {
+  document.getElementById("status-text").textContent = msg;
+  document.getElementById("status-dot").className = "status-dot" + (live ? " live" : "");
+}
+
+// ── Build question dot indicators ─────────────────────────────────────
+function buildDots(total) {
+  const container = document.getElementById("q-dots");
+  container.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement("div");
+    d.className = "q-dot" + (i === 0 ? " active" : "");
+    d.id = `dot-${i}`;
+    container.appendChild(d);
+  }
+}
+
+function updateDots(current) {
+  for (let i = 0; i < totalQ; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    if (!d) continue;
+    d.className = "q-dot" + (i < current ? " done" : i === current ? " active" : "");
+  }
+}
+
+// ── Session begin ─────────────────────────────────────────────────────
+function beginSession() {
+  const name = document.getElementById("cfg-name").value.trim() || "Candidate";
+  const role = document.getElementById("cfg-role").value;
+  const numQ = parseInt(document.getElementById("cfg-qs").value);
+
+  sessionId = crypto.randomUUID();
+  totalQ    = numQ;
+
+  // Hide overlay
+  document.getElementById("setup-overlay").style.opacity = "0";
+  setTimeout(() => document.getElementById("setup-overlay").style.display = "none", 500);
+
+  buildDots(numQ);
+  document.getElementById("q-counter").textContent = `Q1/${numQ}`;
+
+  socket.emit("live_start", {
+    sid:           sessionId,
+    role:          role,
+    num_questions: numQ,
+    user_id:       "{{ current_user.id if current_user.is_authenticated else 'anonymous' }}",
+    user_name:     name,
+  });
+
+  setStatus("Connecting to AI interviewer…", false);
+}
+
+// ── Start frame capture + audio recording ────────────────────────────
+function startRecording() {
+  if (!sessionActive || recordingNow || waitingForNext) return;
+  recordingNow = true;
+
+  document.getElementById("btn-start").style.display = "none";
+  document.getElementById("btn-stop").style.display  = "inline-block";
+  document.getElementById("rec-ring").classList.add("active");
+  setStatus("Recording your answer…", true);
+  document.getElementById("live-transcript").textContent = "";
+
+  // Send video frames every 250ms
+  const canvas  = document.createElement("canvas");
+  const ctx     = canvas.getContext("2d");
+  const videoEl = document.getElementById("webcam");
+  canvas.width  = 320;
+  canvas.height = 240;
+
+  frameInterval = setInterval(() => {
+    ctx.drawImage(videoEl, 0, 0, 320, 240);
+    const dataURL = canvas.toDataURL("image/jpeg", 0.6);
+    socket.emit("live_frame", { sid: sessionId, frame: dataURL });
+  }, 250);
+
+  // Audio recording (WebM chunks every 3s)
+  const audioStream = new MediaStream(videoStream.getAudioTracks());
+  mediaRecorder = new MediaRecorder(audioStream, { mimeType: "audio/webm" });
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) {
+      // Convert to base64 and send
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        socket.emit("live_audio_chunk", { sid: sessionId, chunk: reader.result });
+        // Also simulate partial transcript update
+        updateTranscriptPlaceholder();
+      };
+      reader.readAsDataURL(e.data);
+    }
+  };
+
+  mediaRecorder.start(3000);  // chunk every 3 seconds
+}
+
+let transcriptWords = 0;
+function updateTranscriptPlaceholder() {
+  // Real transcript comes from server after answer_done
+  // Show a "listening" animation in the meantime
+  transcriptWords += Math.floor(Math.random() * 5) + 2;
+  const el = document.getElementById("live-transcript");
+  if (el.textContent.startsWith("Your speech")) {
+    el.textContent = "🎙 Listening…";
+  }
+}
+
+// ── Stop recording → tell server to process ───────────────────────────
+function stopRecording() {
+  if (!recordingNow) return;
+  recordingNow = false;
+  waitingForNext = true;
+
+  clearInterval(frameInterval);
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+  }
+
+  document.getElementById("btn-stop").style.display = "none";
+  document.getElementById("rec-ring").classList.remove("active");
+  setStatus("Processing your answer…", false);
+  document.getElementById("live-transcript").textContent = "⏳ Transcribing and analysing…";
+
+  setTimeout(() => {
+    socket.emit("live_answer_done", { sid: sessionId });
+  }, 800);  // small delay to flush final audio chunk
+}
+
+function requestNextQuestion() {
+  document.getElementById("btn-next").style.display = "none";
+  document.getElementById("btn-start").style.display = "inline-block";
+  waitingForNext = false;
+}
+
+// ── Update ring gauge ─────────────────────────────────────────────────
+function setRing(score) {
+  const circumference = 113;
+  const offset = circumference - (score / 100) * circumference;
+  const fill   = document.getElementById("ring-fill");
+  const val    = document.getElementById("ring-val");
+  fill.style.strokeDashoffset = offset;
+  val.textContent = score;
+
+  if (score >= 75)      fill.style.stroke = "var(--success)";
+  else if (score >= 50) fill.style.stroke = "var(--warn)";
+  else                  fill.style.stroke = "var(--danger)";
+}
+
+// ── Score badge class ─────────────────────────────────────────────────
+function scoreClass(s) {
+  if (s >= 70) return "score-high";
+  if (s >= 45) return "score-mid";
+  return "score-low";
+}
+
+// ── Add answer card to history ────────────────────────────────────────
+function addAnswerCard(data) {
+  const container = document.getElementById("answer-history");
+  const final = data.scores.final;
+  const card = document.createElement("div");
+  card.className = "answer-card";
+  card.innerHTML = `
+    <div class="answer-card-header">
+      <span class="answer-q-label">Q${data.q_index + 1}</span>
+      <span class="answer-score ${scoreClass(final)}">${final}/100</span>
+    </div>
+    <div class="answer-emo">
+      ${data.behavior.emotion} · 👁 ${data.behavior.eye_contact}% eye contact
+    </div>
+    <div class="answer-fb">${data.llm_feedback}</div>
+  `;
+  container.prepend(card);
+}
+
+// ── Socket events ─────────────────────────────────────────────────────
+socket.on("live_session_ready", (data) => {
+  sessionActive = true;
+  currentQ = 0;
+  document.getElementById("q-label").textContent = `Question ${data.q_index + 1} of ${data.total}`;
+  document.getElementById("question-text").textContent = data.question;
+  document.getElementById("q-counter").textContent = `Q1/${data.total}`;
+  document.getElementById("btn-start").style.display = "inline-block";
+  setStatus("Ready — click Start Answer when ready", false);
+});
+
+socket.on("live_face_update", (data) => {
+  document.getElementById("live-emotion").textContent = data.emotion;
+  document.getElementById("live-conf").textContent    = data.confidence + "%";
+  document.getElementById("live-eye").textContent     = data.eye_contact + "%";
+
+  // Colour confidence by value
+  const el = document.getElementById("live-conf");
+  el.style.color = data.confidence >= 70
+    ? "var(--success)"
+    : data.confidence >= 45
+    ? "var(--warn)"
+    : "var(--danger)";
+});
+
+socket.on("live_processing", (data) => {
+  setStatus(data.msg, false);
+});
+
+socket.on("live_answer_result", (data) => {
+  currentQ = data.q_index;
+  setRing(data.scores.final);
+  document.getElementById("live-transcript").textContent = data.transcript || "(no speech detected)";
+  document.getElementById("ring-sub").textContent = "Q" + (data.q_index + 1) + " score";
+  addAnswerCard(data);
+  setStatus("Answer saved to database ✓", false);
+  updateDots(currentQ + 1);
+  document.getElementById("btn-next").style.display = "inline-block";
+});
+
+socket.on("live_next_question", (data) => {
+  currentQ = data.q_index;
+  document.getElementById("q-label").textContent = `Question ${data.q_index + 1} of ${data.total}`;
+  document.getElementById("question-text").textContent = data.question;
+  document.getElementById("q-counter").textContent = `Q${data.q_index + 1}/${data.total}`;
+  updateDots(data.q_index);
+  setStatus("Next question loaded — click Start Answer", false);
+});
+
+socket.on("live_complete", (data) => {
+  sessionActive = false;
+  buildSummary(data);
+});
+
+socket.on("live_error", (data) => {
+  setStatus("Error: " + data.msg, false);
+  alert("Session error: " + data.msg);
+});
+
+// ── Build final summary overlay ───────────────────────────────────────
+function buildSummary(data) {
+  const ov = data.overall;
+  document.getElementById("sum-level").textContent  = ov.level;
+  document.getElementById("sum-final").textContent  = ov.final_score;
+  document.getElementById("sum-speech").textContent = ov.speech_score;
+  document.getElementById("sum-face").textContent   = ov.face_score;
+  document.getElementById("sum-nlp").textContent    = ov.nlp_score;
+
+  const container = document.getElementById("sum-answers");
+  container.innerHTML = "";
+
+  data.answers.forEach((a, i) => {
+    const div = document.createElement("div");
+    div.className = "sum-answer-item";
+    div.innerHTML = `
+      <h4>Q${i + 1}: ${a.question}</h4>
+      <p>${a.transcript || "(no speech detected)"}</p>
+      <div class="sum-chips">
+        <span class="chip">Speech ${a.scores.speech}</span>
+        <span class="chip">Face ${a.scores.face}</span>
+        <span class="chip">NLP ${a.scores.nlp}</span>
+        <span class="chip">${a.behavior.emotion}</span>
+      </div>
+      <div class="answer-fb" style="-webkit-line-clamp:4;">${a.llm_feedback}</div>
+    `;
+    container.appendChild(div);
+  });
+
+  document.getElementById("summary-overlay").style.display = "flex";
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+initCamera();
+</script>
+</body>
+</html>

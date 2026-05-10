@@ -44,6 +44,9 @@ from modules.resume_analysis import analyze_resume
 # Recruiter Intelligence
 # =========================
 from modules.hiring_recommendation import generate_hiring_recommendation
+ 
+from flask_socketio import SocketIO
+from live_interview_routes import register_live_routes
 
 # =========================
 # LLM Recruiter Feedback
@@ -61,6 +64,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv(
     "SECRET_KEY"
 )
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+
 # =========================
 # MongoDB Setup
 # =========================
@@ -74,6 +79,12 @@ db = client["hiresense_ai"]
 users_collection = db["users"]
 
 results_collection = db["results"]
+results_collection.create_index(
+    "created_at",
+    expireAfterSeconds=60 * 60 * 24 * 90  # auto-delete after 90 days
+)
+
+register_live_routes(socketio, db)
 
 # =========================
 # Flask Login Setup
@@ -92,7 +103,13 @@ def load_user(user_id):
         users_collection,
         user_id
     )
-
+# =========================
+# live interview page route
+# =========================
+@app.route("/live-interview")
+@login_required
+def live_interview():
+    return render_template("live_interview.html")
 # =========================
 # Markdown Jinja Filter
 # =========================
@@ -888,15 +905,5 @@ def dashboard():
 # Run Flask
 # ====================================================
 if __name__ == "__main__":
+    socketio.run(app, host="127.0.0.1", port=5000, debug=True, use_reloader=False)
 
-    app.run(
-
-        host="127.0.0.1",
-
-        port=5000,
-
-        debug=True,
-
-        use_reloader=False
-
-    )
