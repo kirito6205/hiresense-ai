@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Intelligence Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #111827);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 48px;
+            background: rgba(15,23,42,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar-brand { font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+        .navbar-brand span { color: #3b82f6; }
+        .navbar-links { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 8px 18px; border-radius: 10px; text-decoration: none;
+            font-size: 14px; font-weight: 500; color: #cbd5e1; transition: 0.2s;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link.active { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+        /* ── Layout ── */
+        .page { padding: 40px; }
+        .container { max-width: 1500px; margin: auto; }
+
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 48px; margin-bottom: 8px; }
+        .header p { color: #94a3b8; font-size: 16px; }
+
+        /* ── Score Cards ── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .card h2 { color: #93c5fd; margin-bottom: 18px; font-size: 20px; }
+
+        .score { font-size: 56px; font-weight: 700; margin-bottom: 16px; }
+
+        /* Score colours based on value */
+        .score-high { color: #4ade80; }
+        .score-mid  { color: #fbbf24; }
+        .score-low  { color: #f87171; }
+
+        .progress-bar {
+            width: 100%; height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px; overflow: hidden;
+        }
+        .progress { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+        .bar-blue   { background: #3b82f6; }
+        .bar-green  { background: #10b981; }
+        .bar-amber  { background: #f59e0b; }
+        .bar-purple { background: #8b5cf6; }
+        .bar-good   { background: #4ade80; }
+        .bar-mid    { background: #fbbf24; }
+        .bar-low    { background: #ef4444; }
+
+        /* ── Overall Score Card ── */
+        .overall-card {
+            background: rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        .overall-card .score { font-size: 72px; margin: 0; }
+        .overall-card-info h2 { color: #93c5fd; font-size: 20px; margin-bottom: 8px; }
+        .overall-card-info p { color: #94a3b8; font-size: 14px; }
+
+        ul { list-style: none; }
+        li { margin-bottom: 10px; font-size: 14px; }
+        .strength { color: #4ade80; }
+        .weakness { color: #f87171; }
+
+        /* ── Section blocks ── */
+        .section {
+            margin-top: 28px;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .section h2 { margin-bottom: 18px; color: #93c5fd; font-size: 20px; }
+        .section p { color: #cbd5e1; line-height: 1.8; font-size: 15px; }
+
+        /* ── Markdown rendered LLM output ── */
+        .llm-output { color: #cbd5e1; line-height: 1.8; }
+        .llm-output h2 {
+            color: #93c5fd;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .llm-output h2:first-child { margin-top: 0; }
+        .llm-output ul { padding-left: 0; margin: 0 0 12px; }
+        .llm-output li {
+            padding: 6px 0 6px 20px;
+            position: relative;
+            color: #e2e8f0;
+            font-size: 14px;
+            line-height: 1.7;
+            border: none;
+        }
+        .llm-output li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+        .llm-output p { margin-bottom: 10px; font-size: 14px; }
+        .llm-output strong { color: #ffffff; }
+
+        /* ── Back button ── */
+        .back-btn {
+            display: inline-block;
+            margin-top: 32px;
+            padding: 14px 28px;
+            border-radius: 14px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+        .back-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">Hire<span>Sense</span> AI</a>
+    <div class="navbar-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/interview-analysis" class="nav-link active">Interview</a>
+        <a href="/resume-analysis" class="nav-link">Resume</a>
+        <a href="/full-analysis" class="nav-link">Unified AI</a>
+    </div>
+</nav>
+
+<div class="page">
+<div class="container">
+
+    <div class="header">
+        <h1>Interview Intelligence Dashboard</h1>
+        <p>AI-powered behavioral, speech, NLP, STAR, and LLM interview evaluation.</p>
+    </div>
+
+    <!-- Overall Score — prominent at the top -->
+    <div class="overall-card" style="margin-bottom:28px;">
+        <div class="score {% if result.final >= 75 %}score-high{% elif result.final >= 50 %}score-mid{% else %}score-low{% endif %}">
+            {{ result.final }}%
+        </div>
+        <div class="overall-card-info">
+            <h2>Overall Interview Score</h2>
+            <p>
+                {% if result.final >= 75 %}Strong performance across all dimensions.
+                {% elif result.final >= 50 %}Moderate performance — areas to improve.
+                {% else %}Needs significant improvement.{% endif %}
+            </p>
+            <div class="progress-bar" style="margin-top:12px; width:260px;">
+                <div class="progress {% if result.final >= 75 %}bar-good{% elif result.final >= 50 %}bar-mid{% else %}bar-low{% endif %}"
+                     style="width: {{ result.final }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score grid -->
+    <div class="grid">
+
+        <!-- Speech -->
+        <div class="card">
+            <h2>Speech Analysis</h2>
+            <div class="score {% if result.speech >= 75 %}score-high{% elif result.speech >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.speech }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress bar-blue" style="width: {{ result.speech }}%"></div>
+            </div>
+        </div>
+
+        <!-- Facial -->
+        {% if result.is_audio_only %}
+
+        <div class="card">
+
+            <h2>Interview Type</h2>
+
+            <p style="font-size:18px;font-weight:600;color:#93c5fd;margin-bottom:14px;">
+
+                Audio Only Interview
+
+            </p>
+
+            <p style="color:#94a3b8;line-height:1.8;font-size:14px;">
+
+                Facial analysis is unavailable
+                for audio-only uploads.
+
+            </p>
+
+        </div>
+
+        {% else %}
+
+        <div class="card">
+
+            <h2>Facial Analysis</h2>
+
+            <div class="score {% if result.face >= 75 %}score-high{% elif result.face >= 50 %}score-mid{% else %}score-low{% endif %}">
+
+                {{ result.face }}%
+
+            </div>
+
+            <div class="progress-bar">
+
+                <div class="progress bar-green" style="width: {{ result.face }}%"></div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        <!-- NLP -->
+        <div class="card">
+            <h2>NLP Intelligence</h2>
+            <div class="score {% if result.nlp >= 75 %}score-high{% elif result.nlp >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.nlp }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress bar-amber" style="width: {{ result.nlp }}%"></div>
+            </div>
+            <div style="margin-top:18px;">
+                <p style="color:#94a3b8; font-size:13px; margin-bottom:4px;">Communication Level</p>
+                <p style="font-size:15px; font-weight:500;">{{ result.nlp_communication }}</p>
+            </div>
+            <div style="margin-top:18px;">
+                <h3 style="margin-bottom:10px; color:#4ade80; font-size:14px;">NLP Strengths</h3>
+                <ul>
+                    {% for item in result.nlp_strengths %}
+                    <li class="strength">✔ {{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div style="margin-top:16px;">
+                <h3 style="margin-bottom:10px; color:#f87171; font-size:14px;">NLP Weaknesses</h3>
+                <ul>
+                    {% for item in result.nlp_weaknesses %}
+                    <li class="weakness">✘ {{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- STAR -->
+        <div class="card">
+            <h2>STAR Method Analysis</h2>
+            <div class="score {% if result.star_score >= 75 %}score-high{% elif result.star_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.star_score }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress bar-purple" style="width: {{ result.star_score }}%"></div>
+            </div>
+            <div style="margin-top:18px;">
+                <p style="font-weight:600; font-size:14px; margin-bottom:14px;">{{ result.star_level }}</p>
+                <ul>
+                    <li style="color: {% if result.star_details.situation %}#4ade80{% else %}#f87171{% endif %}; margin-bottom:8px;">
+                        {% if result.star_details.situation %}✔{% else %}✘{% endif %} Situation
+                    </li>
+                    <li style="color: {% if result.star_details.task %}#4ade80{% else %}#f87171{% endif %}; margin-bottom:8px;">
+                        {% if result.star_details.task %}✔{% else %}✘{% endif %} Task
+                    </li>
+                    <li style="color: {% if result.star_details.action %}#4ade80{% else %}#f87171{% endif %}; margin-bottom:8px;">
+                        {% if result.star_details.action %}✔{% else %}✘{% endif %} Action
+                    </li>
+                    <li style="color: {% if result.star_details.result %}#4ade80{% else %}#f87171{% endif %}; margin-bottom:8px;">
+                        {% if result.star_details.result %}✔{% else %}✘{% endif %} Result
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Behavior -->
+    {% if not result.is_audio_only %}
+
+    <div class="section">
+
+        <h2>Behavior Analysis</h2>
+
+        <p>{{ result.behavior }}</p>
+
+    </div>
+
+    {% endif %}
+
+    <!-- Speech Intelligence -->
+    <div class="section">
+        <h2>Speech Intelligence</h2>
+        <p>{{ result.speech_analysis }}</p>
+    </div>
+
+    <!-- LLM Recruiter Intelligence — rendered as markdown -->
+    <div class="section">
+        <h2>LLM Recruiter Intelligence</h2>
+        <div class="llm-output">
+            {{ result.llm_feedback | markdown }}
+        </div>
+    </div>
+
+    <!-- AI Recruiter Feedback -->
+    <div class="section">
+        <h2>AI Recruiter Feedback</h2>
+        <p>{{ result.feedback }}</p>
+    </div>
+
+    <!-- Transcript -->
+    <div class="section">
+        <h2>Interview Transcript</h2>
+        <p style="color:#94a3b8; font-style:italic; line-height:1.9;">{{ result.transcript }}</p>
+    </div>
+
+    <a href="/interview-analysis" class="back-btn">← Analyze Another Interview</a>
+
+</div>
+</div>
+
+</body>
+</html>

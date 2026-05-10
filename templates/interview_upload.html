@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>HireSense AI • Interview Intelligence</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+
+            font-family:'Poppins',sans-serif;
+
+            background:linear-gradient(
+                135deg,
+                #0f172a,
+                #111827
+            );
+
+            min-height:100vh;
+
+            color:white;
+        }
+
+        /* Navbar */
+
+        .navbar {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 18px 40px;
+
+            background: rgba(15, 23, 42, 0.88);
+
+            backdrop-filter: blur(16px);
+
+            border-bottom: 1px solid rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+        }
+
+        .navbar-brand {
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+            color: white;
+
+            text-decoration: none;
+        }
+
+        .navbar-brand span {
+
+            color: #3b82f6;
+        }
+
+        .navbar-links {
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+        .nav-link {
+
+            padding: 10px 18px;
+
+            border-radius: 12px;
+
+            text-decoration: none;
+
+            font-size: 15px;
+
+            font-weight: 500;
+
+            color: #cbd5e1;
+
+            transition: 0.25s;
+        }
+
+        .nav-link:hover {
+
+            background: rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            color: white;
+        }
+
+        .nav-link.active {
+
+            background: rgba(
+                59,
+                130,
+                246,
+                0.18
+            );
+
+            color: #93c5fd;
+        }
+
+        .page{
+
+            padding:40px;
+        }
+
+        .container{
+
+            width:100%;
+
+            max-width:1040px;
+
+            margin:auto;
+
+            background:rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            backdrop-filter:blur(14px);
+
+            border-radius:30px;
+
+            padding:55px;
+
+            box-shadow:0 10px 35px rgba(
+                0,
+                0,
+                0,
+                0.35
+            );
+        }
+
+        h1{
+
+            font-size:64px;
+
+            text-align:center;
+
+            margin-bottom:18px;
+        }
+
+        .subtitle{
+
+            text-align:center;
+
+            color:#cbd5e1;
+
+            line-height:1.9;
+
+            margin-bottom:50px;
+
+            font-size:18px;
+        }
+
+        form{
+
+            display:flex;
+
+            flex-direction:column;
+
+            gap:36px;
+        }
+
+        .input-group{
+
+            display:flex;
+
+            flex-direction:column;
+
+            gap:16px;
+        }
+
+        label{
+
+            font-size:18px;
+
+            font-weight:600;
+        }
+
+        .modern-select{
+
+            width:100%;
+
+            padding:16px 18px;
+
+            border-radius:16px;
+
+            border:none;
+
+            outline:none;
+
+            background:#343b4f;
+
+            color:white;
+
+            font-size:15px;
+        }
+
+        .question-card-ai{
+
+            margin-top:10px;
+
+            padding:28px;
+
+            border-radius:22px;
+
+            background:rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            border:1px solid rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            line-height:1.8;
+
+            font-size:18px;
+
+            color:white;
+
+            font-weight:500;
+        }
+
+        .secondary-btn{
+
+            margin-top:18px;
+
+            background:#24324a;
+
+            border:none;
+
+            color:white;
+
+            padding:14px 22px;
+
+            border-radius:14px;
+
+            cursor:pointer;
+
+            font-size:14px;
+
+            font-weight:500;
+
+            transition:0.25s;
+
+            width:fit-content;
+        }
+
+        .secondary-btn:hover{
+
+            background:#32415d;
+        }
+
+        /* Upload Zone */
+
+        .upload-zone{
+
+            width:100%;
+
+            padding:38px;
+
+            border:2px dashed rgba(
+                255,
+                255,
+                255,
+                0.18
+            );
+
+            border-radius:22px;
+
+            background:rgba(
+                255,
+                255,
+                255,
+                0.05
+            );
+
+            text-align:center;
+
+            cursor:pointer;
+
+            transition:0.3s;
+
+            position:relative;
+        }
+
+        .upload-zone:hover{
+
+            border-color:#3b82f6;
+
+            background:rgba(
+                59,
+                130,
+                246,
+                0.08
+            );
+        }
+
+        .upload-zone input[type="file"]{
+
+            position:absolute;
+
+            inset:0;
+
+            width:100%;
+            height:100%;
+
+            opacity:0;
+
+            cursor:pointer;
+        }
+
+        .upload-icon{
+
+            font-size:38px;
+
+            margin-bottom:14px;
+        }
+
+        .upload-zone p{
+
+            color:#cbd5e1;
+
+            margin-bottom:8px;
+
+            font-size:15px;
+        }
+
+        .file-hint{
+
+            color:#64748b;
+
+            font-size:13px;
+        }
+
+        .upload-filename{
+
+            color:#93c5fd;
+
+            font-size:14px;
+
+            margin-top:12px;
+
+            display:none;
+        }
+
+        button{
+
+            padding:22px;
+
+            border:none;
+
+            border-radius:18px;
+
+            background:#2563eb;
+
+            color:white;
+
+            font-size:22px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:0.3s;
+        }
+
+        button:hover{
+
+            transform:translateY(-2px);
+
+            background:#1d4ed8;
+        }
+
+        /* Loading */
+
+        #loading-screen{
+
+            position:fixed;
+
+            top:0;
+            left:0;
+
+            width:100%;
+            height:100%;
+
+            background:#0f172a;
+
+            display:none;
+
+            justify-content:center;
+            align-items:center;
+
+            z-index:9999;
+        }
+
+        .loader-box{
+
+            text-align:center;
+
+            color:white;
+        }
+
+        .spinner{
+
+            width:100px;
+            height:100px;
+
+            border:10px solid rgba(
+                255,
+                255,
+                255,
+                0.1
+            );
+
+            border-top:10px solid #2563eb;
+
+            border-radius:50%;
+
+            animation:spin 1s linear infinite;
+
+            margin:auto auto 30px auto;
+        }
+
+        @keyframes spin{
+
+            0%{
+                transform:rotate(0deg);
+            }
+
+            100%{
+                transform:rotate(360deg);
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div id="loading-screen">
+
+    <div class="loader-box">
+
+        <div class="spinner"></div>
+
+        <h2>Analyzing Candidate...</h2>
+
+        <p>
+
+            Speech Intelligence • NLP • STAR Analysis •
+            Facial AI • Recruiter Intelligence
+
+        </p>
+
+    </div>
+
+</div>
+
+<nav class="navbar">
+
+    <a href="/" class="navbar-brand">
+
+        Hire<span>Sense</span> AI
+
+    </a>
+
+    <div class="navbar-links">
+
+        <a href="/" class="nav-link">
+            Home
+        </a>
+
+        <a href="/interview-analysis" class="nav-link active">
+            Interview
+        </a>
+
+        <a href="/resume-analysis" class="nav-link">
+            Resume
+        </a>
+
+        <a href="/full-analysis" class="nav-link">
+            Unified AI
+        </a>
+
+    </div>
+
+</nav>
+
+<div class="page">
+
+<div class="container">
+
+    <h1>Interview Intelligence</h1>
+
+    <p class="subtitle">
+
+        AI-powered multimodal interview evaluation
+        supporting both video and audio interviews
+        with speech intelligence, STAR methodology detection,
+        explainable NLP, and recruiter reasoning.
+
+    </p>
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+        <div class="input-group">
+
+            <label>
+
+                AI Interview Question
+
+            </label>
+
+            <select
+                onchange="updateRole(this.value)"
+                class="modern-select"
+            >
+
+                <option
+                    value="Data Scientist"
+                    {% if role == "Data Scientist" %}
+                        selected
+                    {% endif %}
+                >
+                    Data Scientist
+                </option>
+
+                <option
+                    value="AI Engineer"
+                    {% if role == "AI Engineer" %}
+                        selected
+                    {% endif %}
+                >
+                    AI Engineer
+                </option>
+
+                <option
+                    value="Python Developer"
+                    {% if role == "Python Developer" %}
+                        selected
+                    {% endif %}
+                >
+                    Python Developer
+                </option>
+
+                <option
+                    value="Frontend Developer"
+                    {% if role == "Frontend Developer" %}
+                        selected
+                    {% endif %}
+                >
+                    Frontend Developer
+                </option>
+
+            </select>
+
+            <div class="question-card-ai">
+
+                {{ ai_question }}
+
+            </div>
+
+            <input
+                type="hidden"
+                name="question_key"
+                value="{{ ai_question }}"
+            >
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="window.location.reload()"
+            >
+
+                Generate Another Question
+
+            </button>
+
+        </div>
+
+        <div class="input-group">
+
+            <label>
+
+                Upload Interview File
+
+            </label>
+
+            <div class="upload-zone">
+
+                <input
+                    type="file"
+                    name="video"
+                    accept="video/*,audio/*"
+                    required
+                    id="video-input"
+                >
+
+                <div class="upload-icon">
+                    🎥
+                </div>
+
+                <p>
+                    Click to upload or drag & drop
+                </p>
+
+                <p class="file-hint">
+                    MP4, MOV, AVI, MP3, WAV supported
+                </p>
+
+                <p
+                    class="upload-filename"
+                    id="video-name"
+                ></p>
+
+            </div>
+
+        </div>
+
+        <button type="submit">
+
+            Analyze Candidate
+
+        </button>
+
+    </form>
+
+</div>
+
+</div>
+
+<script>
+
+    function updateRole(role){
+
+        window.location.href =
+            "/interview-analysis?role=" +
+            encodeURIComponent(role)
+    }
+
+    const form = document.querySelector(
+        "form"
+    )
+
+    form.addEventListener(
+
+        "submit",
+
+        function(){
+
+            document.getElementById(
+                "loading-screen"
+            ).style.display = "flex"
+        }
+    )
+
+    document.getElementById(
+        "video-input"
+    ).addEventListener(
+
+        "change",
+
+        function(){
+
+            const fileName =
+                this.files[0]?.name
+
+            const el =
+                document.getElementById(
+                    "video-name"
+                )
+
+            if(fileName){
+
+                el.textContent =
+                    "✔ " + fileName
+
+                el.style.display =
+                    "block"
+            }
+        }
+    )
+
+</script>
+
+</body>
+
+</html>

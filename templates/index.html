@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireSense AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #111827);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 48px;
+            background: rgba(15,23,42,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar-brand span { color: #3b82f6; }
+        .navbar-links { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 8px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #cbd5e1;
+            transition: 0.2s;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link.active { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+        /* ── Hero ── */
+        .hero {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 65px);
+            padding: 40px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 820px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(14px);
+            border-radius: 28px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(59,130,246,0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59,130,246,0.3);
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 62px; margin-bottom: 18px; line-height: 1.1; }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 48px;
+            line-height: 1.9;
+            font-size: 17px;
+        }
+
+        /* ── Buttons — consistent blue family ── */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            transition: 0.25s;
+            border: 1px solid transparent;
+        }
+
+        .btn-interview {
+            background: #2563eb;
+            border-color: #3b82f6;
+        }
+        .btn-interview:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        .btn-resume {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+            color: #e2e8f0;
+        }
+        .btn-resume:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+
+        .btn-unified {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            color: #cbd5e1;
+        }
+        .btn-unified:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+        .btn-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            font-size: 20px;
+        }
+
+        .footer {
+            margin-top: 36px;
+            color: #475569;
+            font-size: 13px;
+            line-height: 2;
+        }
+
+        .footer span {
+            color: #64748b;
+            margin: 0 6px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">Hire<span>Sense</span> AI</a>
+    <div class="navbar-links">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/interview-analysis" class="nav-link">Interview</a>
+        <a href="/resume-analysis" class="nav-link">Resume</a>
+        <a href="/full-analysis" class="nav-link">Unified AI</a>
+    </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="card">
+
+        <div class="badge">AI-Powered Recruitment Intelligence</div>
+
+        <h1>HireSense AI</h1>
+
+        <p class="subtitle">
+            Unified multimodal recruitment platform combining Interview Analysis,
+            Resume Intelligence, Behavioral Insights, NLP, Computer Vision,
+            and Hiring Recommendation Systems.
+        </p>
+
+        <a href="/interview-analysis" class="btn btn-interview">
+            <div class="btn-label">
+                <span class="btn-icon">🎥</span>
+                Interview Intelligence
+            </div>
+        </a>
+
+        <a href="/resume-analysis" class="btn btn-resume">
+            <div class="btn-label">
+                <span class="btn-icon">📄</span>
+                Resume Intelligence
+            </div>
+        </a>
+
+        <a href="/full-analysis" class="btn btn-unified">
+            <div class="btn-label">
+                <span class="btn-icon">⚡</span>
+                Unified Hiring AI
+            </div>
+        </a>
+
+        <div class="footer">
+            Speech AI <span>•</span> NLP <span>•</span> Computer Vision
+            <span>•</span> Resume Intelligence <span>•</span> Hiring Recommendation Engine
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

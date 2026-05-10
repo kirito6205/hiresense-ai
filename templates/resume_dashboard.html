@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireSense AI • Hiring Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #111827);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 48px;
+            background: rgba(15,23,42,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .navbar-brand { font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+        .navbar-brand span { color: #3b82f6; }
+        .navbar-links { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 8px 18px; border-radius: 10px; text-decoration: none;
+            font-size: 14px; font-weight: 500; color: #cbd5e1; transition: 0.2s;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link.active { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+        .page { padding: 40px; }
+        .container { max-width: 1350px; margin: auto; }
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 48px; margin-bottom: 8px; }
+        .header p { color: #94a3b8; font-size: 16px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .card h2 { color: #93c5fd; margin-bottom: 18px; font-size: 20px; }
+
+        .big-score { font-size: 56px; font-weight: 700; margin-bottom: 16px; }
+        .score-high { color: #4ade80; }
+        .score-mid  { color: #fbbf24; }
+        .score-low  { color: #f87171; }
+
+        .progress-bar {
+            width: 100%; height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px; overflow: hidden;
+        }
+        .progress { height: 100%; border-radius: 6px; }
+        .bar-blue   { background: #3b82f6; }
+        .bar-green  { background: #10b981; }
+        .bar-amber  { background: #f59e0b; }
+        .bar-good   { background: #4ade80; }
+        .bar-mid    { background: #fbbf24; }
+        .bar-low    { background: #ef4444; }
+
+        .recommendation {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 10px 22px;
+            border-radius: 12px;
+            background: #10b981;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        ul { list-style: none; }
+        li { margin-bottom: 10px; font-size: 14px; }
+        .matched { color: #4ade80; }
+        .missing  { color: #f87171; }
+
+        .empty-state { color: #475569; font-size: 14px; font-style: italic; padding: 12px 0; }
+
+        .section {
+            margin-top: 28px;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .section h2 { margin-bottom: 18px; color: #93c5fd; font-size: 20px; }
+        .section p { color: #cbd5e1; line-height: 1.8; font-size: 15px; }
+
+        .back-btn {
+            display: inline-block; margin-top: 32px;
+            padding: 14px 28px; border-radius: 14px;
+            background: #2563eb; color: white;
+            text-decoration: none; font-weight: 500; font-size: 15px;
+            transition: 0.2s;
+        }
+        .back-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">Hire<span>Sense</span> AI</a>
+    <div class="navbar-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/interview-analysis" class="nav-link">Interview</a>
+        <a href="/resume-analysis" class="nav-link active">Resume</a>
+        <a href="/full-analysis" class="nav-link">Unified AI</a>
+    </div>
+</nav>
+
+<div class="page">
+<div class="container">
+
+    <div class="header">
+        <h1>Hiring Intelligence Dashboard</h1>
+        <p>Unified AI Powered Recruitment Analysis</p>
+    </div>
+
+    <div class="grid">
+
+        <!-- Resume Match -->
+        <div class="card">
+            <h2>Resume Match</h2>
+            <div class="big-score {% if result.match_score >= 75 %}score-high{% elif result.match_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.match_score }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress bar-blue" style="width: {{ result.match_score }}%"></div>
+            </div>
+        </div>
+
+        <!-- Interview Score -->
+        <div class="card">
+            <h2>Interview Score</h2>
+            <div class="big-score {% if result.interview_score >= 75 %}score-high{% elif result.interview_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.interview_score }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress bar-amber" style="width: {{ result.interview_score }}%"></div>
+            </div>
+        </div>
+
+        <!-- Overall Hiring Score -->
+        <div class="card">
+            <h2>Overall Hiring Score</h2>
+            <div class="big-score {% if result.overall_score >= 75 %}score-high{% elif result.overall_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                {{ result.overall_score }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress {% if result.overall_score >= 75 %}bar-good{% elif result.overall_score >= 50 %}bar-mid{% else %}bar-low{% endif %}"
+                     style="width: {{ result.overall_score }}%"></div>
+            </div>
+            <div class="recommendation">{{ result.recommendation }}</div>
+        </div>
+
+        <!-- Matched Skills -->
+        <div class="card">
+            <h2>Matched Skills</h2>
+            {% if result.matched_skills %}
+            <ul>
+                {% for skill in result.matched_skills %}
+                <li class="matched">✔ {{ skill }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">No matched skills found. Try aligning your resume keywords with the job description.</p>
+            {% endif %}
+        </div>
+
+        <!-- Missing Skills -->
+        <div class="card">
+            <h2>Missing Skills</h2>
+            {% if result.missing_skills %}
+            <ul>
+                {% for skill in result.missing_skills %}
+                <li class="missing">✘ {{ skill }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state" style="color:#4ade80;">No missing skills — strong alignment!</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Recruiter Insight -->
+    <div class="section">
+        <h2>AI Recruiter Insight</h2>
+        <p>{{ result.insight }}</p>
+    </div>
+
+    <a href="/resume-analysis" class="back-btn">← Analyze Another Candidate</a>
+
+</div>
+</div>
+
+</body>
+</html>
