@@ -168,23 +168,20 @@ http://127.0.0.1:5000
 
 ## Login & Registration Interface
 
-(Add Screenshot Here)
+![Login Page](screenshots/login.png)
 
 ## Resume Analysis Dashboard
 
-(Add Screenshot Here)
+![Dashboard](screenshots/dashboard.png)
 
 ## Live Interview Analysis
 
-(Add Screenshot Here)
+![Live Interview](screenshots/live-interview.png)
 
-## Recruiter Dashboard
-
-(Add Screenshot Here)
 
 ## Project Structure in VS Code
 
-(Add Screenshot Here)
+![VS Code Structure](screenshots/project-structure.svg)
 
 ---
 
